@@ -20,12 +20,61 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
-        activityCard.innerHTML = `
-          <h4>${name}</h4>
-          <p>${details.description}</p>
-          <p><strong>Schedule:</strong> ${details.schedule}</p>
-          <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
-        `;
+        // Title
+        const title = document.createElement("h4");
+        title.textContent = name;
+        activityCard.appendChild(title);
+
+        // Description
+        const descP = document.createElement("p");
+        descP.textContent = details.description;
+        activityCard.appendChild(descP);
+
+        // Schedule
+        const schedP = document.createElement("p");
+        const schedStrong = document.createElement("strong");
+        schedStrong.textContent = "Schedule:";
+        schedP.appendChild(schedStrong);
+        schedP.appendChild(document.createTextNode(" " + details.schedule));
+        activityCard.appendChild(schedP);
+
+        // Availability
+        const availP = document.createElement("p");
+        const availStrong = document.createElement("strong");
+        availStrong.textContent = "Availability:";
+        availP.appendChild(availStrong);
+        availP.appendChild(document.createTextNode(" " + spotsLeft + " spots left"));
+        activityCard.appendChild(availP);
+
+        // Participants block
+        const participantsBlock = document.createElement("div");
+        participantsBlock.className = "participants";
+
+        const participantsHeader = document.createElement("h5");
+        participantsHeader.textContent = "Participants";
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = `${details.participants.length}`;
+        participantsHeader.appendChild(badge);
+        participantsBlock.appendChild(participantsHeader);
+
+        if (details.participants && details.participants.length > 0) {
+          const ul = document.createElement("ul");
+          ul.className = "participants-list";
+          details.participants.forEach((p) => {
+            const li = document.createElement("li");
+            li.textContent = p;
+            ul.appendChild(li);
+          });
+          participantsBlock.appendChild(ul);
+        } else {
+          const emptyP = document.createElement("p");
+          emptyP.className = "participant-empty";
+          emptyP.textContent = "No participants yet. Be the first to sign up!";
+          participantsBlock.appendChild(emptyP);
+        }
+
+        activityCard.appendChild(participantsBlock);
 
         activitiesList.appendChild(activityCard);
 
