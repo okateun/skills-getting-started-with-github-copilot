@@ -4,6 +4,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
 
+  // Helper: Unregister a participant from an activity
+  async function unregisterParticipant(activityName, email) {
+    try {
+      const response = await fetch(`/activities/${encodeURIComponent(activityName)}/unregister?email=${encodeURIComponent(email)}`, {
+        method: "DELETE",
+      });
+      const result = await response.json().catch(() => ({}));
+      return { ok: response.ok, result };
+    } catch (error) {
+      console.error("Error unregistering participant:", error);
+      return { ok: false, result: null };
+    }
+  }
+
   // Function to fetch activities from API
   async function fetchActivities() {
     try {
@@ -63,7 +77,42 @@ document.addEventListener("DOMContentLoaded", () => {
           ul.className = "participants-list";
           details.participants.forEach((p) => {
             const li = document.createElement("li");
-            li.textContent = p;
+            li.className = "participant-item";
+
+            const nameSpan = document.createElement("span");
+            nameSpan.textContent = p;
+            nameSpan.className = "participant-email";
+
+            const delBtn = document.createElement("button");
+            delBtn.className = "delete-btn";
+            delBtn.title = "Unregister participant";
+            delBtn.textContent = "🗑️";
+            delBtn.addEventListener("click", async () => {
+              const confirmed = confirm(`Unregister ${p} from ${name}?`);
+              if (!confirmed) return;
+
+              const { ok, result } = await unregisterParticipant(name, p);
+              if (ok) {
+                messageDiv.textContent = result?.message || "Participant unregistered";
+                messageDiv.className = "success";
+                messageDiv.classList.remove("hidden");
+
+                // Refresh the activities to show updated participants and counts
+                fetchActivities();
+              } else {
+                messageDiv.textContent = result?.detail || "Failed to unregister participant";
+                messageDiv.className = "error";
+                messageDiv.classList.remove("hidden");
+              }
+
+              setTimeout(() => {
+                messageDiv.classList.add("hidden");
+              }, 5000);
+            });
+
+            li.appendChild(nameSpan);
+            li.appendChild(delBtn);
+
             ul.appendChild(li);
           });
           participantsBlock.appendChild(ul);
@@ -111,6 +160,9 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+
+        // Refresh activities so the new participant shows up immediately
+        fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
